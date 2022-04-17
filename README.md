@@ -1,2 +1,2 @@
 # HTTP
-This is a http-lib.
+This is a http_client lib.
