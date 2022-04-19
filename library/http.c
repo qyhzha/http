@@ -1,5 +1,192 @@
 #include "http.h"
 
+typedef struct http_url_t
+{
+    char *scheme;
+    char *host;
+    char *port;
+    char *path;
+} http_url_t;
+
+static int http_url_match_scheme(http_url_t *url, const char *s)
+{
+    int ret = -1;
+
+    url->scheme = NULL;
+
+    if (http_strcasecmp(s, "http://") == 0)
+    {
+        url->scheme = http_strdup("http");
+        ret = 7;
+    }
+    else if (http_strcasecmp(s, "https://") == 0)
+    {
+        url->scheme = http_strdup("https");
+        ret = 8;
+    }
+
+    if (url->scheme == NULL)
+        return -1;
+
+    return ret;
+}
+
+static int http_url_match_host(http_url_t *url, const char *s)
+{
+    int ret = http_strcspn(s, ":/");
+
+    url->host = NULL;
+
+    if (ret > 0)
+    {
+        // ipv6
+        if (s[0] == '[' && s[ret - 1] == ']')
+        {
+            url->host = (char *)http_malloc(ret - 1);
+            if (url->host != NULL)
+            {
+                http_memcpy(url->host, s + 1, ret - 2);
+                url->host[ret - 2] = 0;
+            }
+        }
+        else
+        {
+            url->host = (char *)http_malloc(ret + 1);
+            if (url->host != NULL)
+            {
+                http_memcpy(url->host, s, ret);
+                url->host[ret] = 0;
+            }
+        }
+    }
+
+    if (url->host == NULL)
+        return -1;
+
+    return ret;
+}
+
+static int http_url_match_port(http_url_t *url, const char *s)
+{
+    int ret = http_strcspn(s, "/");
+
+    url->port = NULL;
+
+    if (ret == 0)
+    {
+        if (http_strcasecmp(url->scheme, "http://") == 0)
+        {
+            url->port = http_strdup("80");
+        }
+        else if (http_strcasecmp(url->scheme, "https://") == 0)
+        {
+            url->port = http_strdup("443");
+        }
+    }
+    else if (ret > 1 && s[0] == ':')
+    {
+        url->port = (char *)http_malloc(ret);
+        if (url->port != NULL)
+        {
+            http_memcpy(url->port, s + 1, ret - 1);
+            url->port[ret - 1] = 0;
+        }
+    }
+
+    if (url->port == NULL)
+        return -1;
+
+    return ret;
+}
+
+static int http_url_match_path(http_url_t *url, const char *s)
+{
+    int ret = strlen(s);
+
+    if (ret == 0)
+    {
+        url->path = http_strdup("/");
+    }
+    else
+    {
+        url->path = http_strdup(s);
+    }
+
+    if (url->path == NULL)
+        return -1;
+
+    return ret;
+}
+
+static http_url_t *http_url_create(const char *s)
+{
+    if (s == NULL)
+        return -1;
+
+    http_url_t *url = (http_url_t *)http_malloc(sizeof(http_url_t));
+
+    if (url == NULL)
+        return -1;
+
+    int pos = 0;
+    if (((pos += http_url_match_scheme(url, s + pos)) < 0)
+     || ((pos += http_url_match_host(url, s + pos)) < 0)
+     || ((pos += http_url_match_port(url, s + pos)) < 0)
+     || ((pos += http_url_match_path(url, s + pos)) < 0))
+    {
+        goto error_exit;
+    }
+
+    return url;
+
+error_exit:
+    if (url->scheme != NULL)
+        http_free(url->scheme);
+
+    if (url->host != NULL)
+        http_free(url->host);
+
+    if (url->port != NULL)
+        http_free(url->port);
+
+    if (url->path != NULL)
+        http_free(url->path);
+
+    return NULL;
+}
+
+static void http_url_destroy(http_url_t *url)
+{
+    if (url->scheme != NULL)
+        http_free(url->scheme);
+
+    if (url->host != NULL)
+        http_free(url->host);
+
+    if (url->port != NULL)
+        http_free(url->port);
+
+    if (url->path != NULL)
+        http_free(url->path);
+
+    http_free(url);
+}
+
+static void http_printf(http_client_t *client, const char *file, int line, int level, const char *format, ...)
+{
+    if (client->debug.level < level || client->debug.debug == NULL)
+        return;
+
+    va_list ap;
+    char buffer[HTTP_LOG_MAX_LENGTH + 1];
+
+    va_start(ap, format);
+    http_vsnprintf(buffer, sizeof(buffer), format, ap);
+    va_end(ap);
+
+    client->debug.debug(client->debug.argv, file, line, buffer);
+}
+
 void http_client_init(http_client_t *client)
 {
     if (client == NULL)
@@ -11,7 +198,6 @@ void http_client_init(http_client_t *client)
     client->request.version = HTTP_VERSION_1_1;
     list_init(&client->request.header);
     list_init(&client->response.header);
-    client->mode = HTTP_MODE_ASYNC;
 }
 
 void http_client_free(http_client_t *client)
@@ -30,7 +216,18 @@ void http_client_free(http_client_t *client)
     }
 }
 
-int http_client_set_url(http_client_t *client, const char *url);
+int http_client_set_url(http_client_t *client, const char *url)
+{
+    if (client == NULL || url == NULL)
+        return -1;
+
+    http_url_t *http_url = http_url_create(url);
+    if (http_url == NULL)
+        return -1;
+
+
+}
+
 int http_client_set_method(http_client_t *client, int method);
 int http_client_set_version(http_client_t *client, int version);
 int http_client_set_authinfo(http_client_t *client, const char *username, const char *password);

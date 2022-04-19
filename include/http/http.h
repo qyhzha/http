@@ -1,12 +1,16 @@
 #ifndef __HTTP_H__
 #define __HTTP_H__
 
-#include "http_config.h"
 #include "http_list.h"
+#include "http_config.h"
+#include "http_debug.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#define HTTP_DEFAULT_BUFFER_SIZE (1024)
+#define HTTP_LOG_MAX_LENGTH      (512)
 
 typedef enum http_method_t
 {
@@ -55,13 +59,10 @@ typedef struct http_response_t
 
 typedef struct http_client_t
 {
+    http_debug_t         debug;
     const http_config_t *config;
     http_request_t       request;
     http_response_t      response;
-
-    http_mode_t          mode;
-    void                *chunk_buffer;
-    size_t               chunk_size;
 } http_client_t;
 
 void http_client_init(http_client_t *client);

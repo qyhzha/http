@@ -17,9 +17,10 @@ typedef enum http_mode_t
 typedef struct http_config_t
 {
     const http_network_t *network;
-    http_mode_t mode;         //同步标志。默认使用异步。
-    size_t chunk_size;        //块大小。用于异步操作时，描述希望一次读取的字节数。
-    const char *save_file;    //应答存放文件。用于同步模式下，描述应答存放到文件。
+    http_mode_t           mode;         //同步标志。默认使用异步。
+    size_t                chunk_size;        //块大小。用于异步操作时，描述希望一次读取的字节数。
+    char                 *chunk_buffer;
+    const char           *save_file;    //应答存放文件。用于同步模式下，描述应答存放到文件。
 } http_config_t;
 
 static inline void http_config_init(http_config_t *config)

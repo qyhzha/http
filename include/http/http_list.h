@@ -27,7 +27,7 @@ static inline void list_free(list_t *list)
     list->next = NULL;
 }
 
-static inline bool list_is_empty(list_t *list)
+static inline int list_is_empty(list_t *list)
 {
     return (list->next == list);
 }
