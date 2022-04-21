@@ -10,8 +10,8 @@ extern "C" {
 
 typedef struct http_network_t
 {
-    int (*connect)(void *user_arg, const char *host, const char *port);
-    int (*disconnect)(void *user_arg);
+    // int (*connect)(void *user_arg, const char *host, const char *port);
+    // int (*disconnect)(void *user_arg);
     int (*read)(void *user_arg, void *buf, size_t nbyte);
     int (*write)(void *user_arg, const void *buf, size_t nbyte);
 } http_network_t;

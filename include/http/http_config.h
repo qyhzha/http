@@ -10,17 +10,18 @@ extern "C" {
 
 typedef enum http_mode_t
 {
-    HTTP_MODE_ASYNC,
-    HTTP_MODE_SYNC,
+    HTTP_MODE_NO_CACHE,
+    HTTP_MODE_CACHE,
+    HTTP_MODE_FLASH,
 } http_mode_t;
 
 typedef struct http_config_t
 {
-    const http_network_t *network;
-    http_mode_t           mode;         //同步标志。默认使用异步。
-    size_t                chunk_size;        //块大小。用于异步操作时，描述希望一次读取的字节数。
-    char                 *chunk_buffer;
-    const char           *save_file;    //应答存放文件。用于同步模式下，描述应答存放到文件。
+    http_network_t  network;
+    http_mode_t     mode;         //同步标志。默认使用异步。
+    void           *cache;        // if mode == HTTP_MODE_CACHE, this is useful.
+    size_t          cache_size;
+    const char     *save_file;     // if mode == HTTP_MODE_FLASH, this is useful.
 } http_config_t;
 
 static inline void http_config_init(http_config_t *config)
@@ -39,19 +40,15 @@ static inline void http_config_network(http_config_t *config, const http_network
 }
 
 //块大小。用于异步操作时，描述希望一次读取的字节数。
-static inline int http_config_chunk_size(http_config_t *config, size_t chunk_size)
+static inline int http_config_mode(http_config_t *config, http_mode_t mode)
 {
-    config->chunk_size = chunk_size;
+    config->mode = mode;
 }
 
-static inline int http_config_sync(http_config_t *config)
+static inline int http_config_cache(http_config_t *config, void *cache, int cache_size)
 {
-    config->mode = HTTP_MODE_SYNC;
-}
-
-static inline int http_config_async(http_config_t *config)
-{
-    config->mode = HTTP_MODE_ASYNC;
+    config->cache = cache;
+    config->cache_size = cache_size;
 }
 
 static inline int http_config_save_file(http_config_t *config, const char *save_file)

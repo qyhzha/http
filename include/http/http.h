@@ -27,13 +27,6 @@ typedef enum http_version_t
     HTTP_VERSION_1_1
 } http_version_t;
 
-typedef struct http_header_t
-{
-    const char *key;
-    const char *value;
-    list_t node;
-} http_header_t;
-
 typedef struct http_request_t
 {
     const char     *url;
@@ -78,8 +71,8 @@ int http_client_set_delete_header(http_client_t *client, const char *key);
 int http_client_set_body(http_client_t *client, const void *body, size_t body_len);
 int http_client_set_body_file(http_client_t *client, const char *body_file, size_t body_len);
 
-int http_client_connect(http_client_t *client, http_config_t *config);
-int http_client_disconnect(http_client_t *client);
+// int http_client_connect(http_client_t *client, http_config_t *config);
+// int http_client_disconnect(http_client_t *client);
 
 //以下API应该在连接后调用
 int http_client_get_status_code(http_client_t *client);

@@ -9,30 +9,30 @@
 extern "C" {
 #endif
 
-typedef struct list_t
+typedef struct http_list_t
 {
-    struct list_t *prev;
-    struct list_t *next;
-} list_t;
+    struct http_list_t *prev;
+    struct http_list_t *next;
+} http_list_t;
 
-static inline void list_init(list_t *list)
+static inline void list_init(http_list_t *list)
 {
     list->prev = list;
     list->next = list;
 }
 
-static inline void list_free(list_t *list)
-{
-    list->prev = NULL;
-    list->next = NULL;
-}
+// static inline void list_free(http_list_t *list)
+// {
+//     list->prev = NULL;
+//     list->next = NULL;
+// }
 
-static inline int list_is_empty(list_t *list)
+static inline bool list_is_empty(http_list_t *list)
 {
     return (list->next == list);
 }
 
-static inline void __list_add(list_t *prev, list_t *next, list_t *node)
+static inline void __list_add(http_list_t *prev, http_list_t *next, http_list_t *node)
 {
     prev->next = node;
     next->prev = node;
@@ -40,28 +40,28 @@ static inline void __list_add(list_t *prev, list_t *next, list_t *node)
     node->next = next;
 }
 
-static inline void list_add(list_t *list, list_t *node)
+static inline void list_add(http_list_t *list, http_list_t *node)
 {
     __list_add(list, list->next, node);
 }
 
-static inline void list_add_tail(list_t *list, list_t *node)
+static inline void list_add_tail(http_list_t *list, http_list_t *node)
 {
     __list_add(list->prev, list, node);
 }
 
-static inline void __list_del(list_t *prev, list_t *next)
+static inline void __list_del(http_list_t *prev, http_list_t *next)
 {
     prev->next = next;
     next->prev = prev;
 }
 
-static inline void list_del(list_t *node)
+static inline void list_del(http_list_t *node)
 {
     __list_del(node->prev, node->next);
 }
 
-static inline void list_del_init(list_t *node)
+static inline void list_del_init(http_list_t *node)
 {
     list_del(node);
 
@@ -69,12 +69,12 @@ static inline void list_del_init(list_t *node)
     node->prev = NULL;
 }
 
-static inline void list_replace(list_t *old, list_t *new)
+static inline void list_replace(http_list_t *old, http_list_t *new)
 {
     __list_add(old->prev, old->next, new);
 }
 
-static inline void list_replace_init(list_t *old, list_t *new)
+static inline void list_replace_init(http_list_t *old, http_list_t *new)
 {
     list_replace(old, new);
 
@@ -82,13 +82,13 @@ static inline void list_replace_init(list_t *old, list_t *new)
     old->prev = NULL;
 }
 
-static inline void list_move(list_t *list, list_t *node)
+static inline void list_move(http_list_t *list, http_list_t *node)
 {
     list_del(node);
     list_add(list, node);
 }
 
-static inline void list_move_tail(list_t *list, list_t *node)
+static inline void list_move_tail(http_list_t *list, http_list_t *node)
 {
     list_del(node);
     list_add_tail(list, node);
@@ -98,7 +98,7 @@ static inline void list_move_tail(list_t *list, list_t *node)
 
 #define list_entry(node, type, member) \
     ( { \
-        const list_t *__mptr = (node); \
+        const http_list_t *__mptr = (node); \
         (type *)((char *)__mptr - offsetof(type,member)); \
     } )
 
