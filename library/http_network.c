@@ -1,12 +1,12 @@
 #include "http_network.h"
 
-#ifdef USE_TCP
+#ifdef HTTP_NET_ENABLE
 
 #include <errno.h>
 #include <sys/netdb.h>
 #include <sys/sockets.h>
 
-int tcp_connect(void *arg, const char *host, const char *port)
+int tcp_connect(void *arg, const char *host, const char *port, size_t proto)
 {
     tcp_network_t *tcp = (tcp_network_t *)arg;
     struct addrinfo hints, *addr_list, *cur;
